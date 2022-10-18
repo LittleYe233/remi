@@ -6,6 +6,9 @@ import pickle
 import utils
 import time
 
+# See: https://stackoverflow.com/a/56569206/12002560
+tf.compat.v1.disable_eager_execution()
+
 class PopMusicTransformer(object):
     ########################################
     # initialize
