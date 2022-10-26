@@ -3,13 +3,14 @@ from glob import glob
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
+
 def main():
     # declare model
     model = PopMusicTransformer(
         checkpoint='REMI-tempo-checkpoint',
         is_training=True)
     # prepare data
-    midi_paths = glob('YOUR PERSOANL FOLDER/*.midi') # you need to revise it
+    midi_paths = glob('YOUR PERSOANL FOLDER/*.midi')  # you need to revise it
     training_data = model.prepare_data(midi_paths=midi_paths)
 
     # check output checkpoint folder
@@ -20,10 +21,10 @@ def main():
     # if use "REMI-tempo-checkpoint"
     # for example: my-love, cute-doggy, ...
     ####################################
-    output_checkpoint_folder = 'REMI-finetune' # your decision
+    output_checkpoint_folder = 'REMI-finetune'  # your decision
     if not os.path.exists(output_checkpoint_folder):
         os.mkdir(output_checkpoint_folder)
-    
+
     # finetune
     model.finetune(
         training_data=training_data,
@@ -40,6 +41,7 @@ def main():
 
     # close
     model.close()
+
 
 if __name__ == '__main__':
     main()

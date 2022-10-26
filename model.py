@@ -9,6 +9,7 @@ import time
 # See: https://stackoverflow.com/a/56569206/12002560
 tf.compat.v1.disable_eager_execution()
 
+
 class PopMusicTransformer(object):
     ########################################
     # initialize
@@ -16,7 +17,8 @@ class PopMusicTransformer(object):
     def __init__(self, checkpoint, is_training=False):
         # load dictionary
         self.dictionary_path = '{}/dictionary.pkl'.format(checkpoint)
-        self.event2word, self.word2event = pickle.load(open(self.dictionary_path, 'rb'))
+        self.event2word, self.word2event = pickle.load(
+            open(self.dictionary_path, 'rb'))
         # model settings
         self.x_len = 512
         self.mem_len = 512
@@ -43,13 +45,18 @@ class PopMusicTransformer(object):
     ########################################
     def load_model(self):
         # placeholders
-        self.x = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
-        self.y = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
-        self.mems_i = [tf.compat.v1.placeholder(tf.float32, [self.mem_len, self.batch_size, self.d_model]) for _ in range(self.n_layer)]
+        self.x = tf.compat.v1.placeholder(
+            tf.int32, shape=[self.batch_size, None])
+        self.y = tf.compat.v1.placeholder(
+            tf.int32, shape=[self.batch_size, None])
+        self.mems_i = [tf.compat.v1.placeholder(tf.float32, [
+                                                self.mem_len, self.batch_size, self.d_model]) for _ in range(self.n_layer)]
         # model
         self.global_step = tf.compat.v1.train.get_or_create_global_step()
-        initializer = tf.compat.v1.initializers.random_normal(stddev=0.02, seed=None)
-        proj_initializer = tf.compat.v1.initializers.random_normal(stddev=0.01, seed=None)
+        initializer = tf.compat.v1.initializers.random_normal(
+            stddev=0.02, seed=None)
+        proj_initializer = tf.compat.v1.initializers.random_normal(
+            stddev=0.01, seed=None)
         with tf.compat.v1.variable_scope(tf.compat.v1.get_variable_scope()):
             xx = tf.transpose(self.x, [1, 0])
             yy = tf.transpose(self.y, [1, 0])
@@ -85,7 +92,8 @@ class PopMusicTransformer(object):
         all_vars = tf.compat.v1.trainable_variables()
         grads = tf.gradients(self.avg_loss, all_vars)
         grads_and_vars = list(zip(grads, all_vars))
-        all_trainable_vars = tf.reduce_sum([tf.reduce_prod(v.shape) for v in tf.compat.v1.trainable_variables()])
+        all_trainable_vars = tf.reduce_sum(
+            [tf.reduce_prod(v.shape) for v in tf.compat.v1.trainable_variables()])
         # optimizer
         decay_lr = tf.compat.v1.train.cosine_decay(
             self.learning_rate,
@@ -93,7 +101,8 @@ class PopMusicTransformer(object):
             decay_steps=400000,
             alpha=0.004)
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=decay_lr)
-        self.train_op = optimizer.apply_gradients(grads_and_vars, self.global_step)
+        self.train_op = optimizer.apply_gradients(
+            grads_and_vars, self.global_step)
         # saver
         self.saver = tf.compat.v1.train.Saver()
         config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
@@ -105,7 +114,8 @@ class PopMusicTransformer(object):
     # temperature sampling
     ########################################
     def temperature_sampling(self, logits, temperature, topk):
-        probs = np.exp(logits / temperature) / np.sum(np.exp(logits / temperature))
+        probs = np.exp(logits / temperature) / \
+            np.sum(np.exp(logits / temperature))
         if topk == 1:
             prediction = np.argmax(probs)
         else:
@@ -115,7 +125,8 @@ class PopMusicTransformer(object):
             # normalize probs
             candi_probs /= sum(candi_probs)
             # choose by predicted probs
-            prediction = np.random.choice(candi_index, size=1, p=candi_probs)[0]
+            prediction = np.random.choice(
+                candi_index, size=1, p=candi_probs)[0]
         return prediction
 
     ########################################
@@ -141,30 +152,37 @@ class PopMusicTransformer(object):
         # if prompt, load it. Or, random start
         if prompt:
             events = self.extract_events(prompt)
-            words = [[self.event2word['{}_{}'.format(e.name, e.value)] for e in events]]
+            words = [
+                [self.event2word['{}_{}'.format(e.name, e.value)] for e in events]]
             words[0].append(self.event2word['Bar_None'])
         else:
             words = []
             for _ in range(self.batch_size):
                 ws = [self.event2word['Bar_None']]
                 if 'chord' in self.checkpoint_path:
-                    tempo_classes = [v for k, v in self.event2word.items() if 'Tempo Class' in k]
-                    tempo_values = [v for k, v in self.event2word.items() if 'Tempo Value' in k]
-                    chords = [v for k, v in self.event2word.items() if 'Chord' in k]
+                    tempo_classes = [
+                        v for k, v in self.event2word.items() if 'Tempo Class' in k]
+                    tempo_values = [
+                        v for k, v in self.event2word.items() if 'Tempo Value' in k]
+                    chords = [v for k, v in self.event2word.items()
+                              if 'Chord' in k]
                     ws.append(self.event2word['Position_1/16'])
                     ws.append(np.random.choice(chords))
                     ws.append(self.event2word['Position_1/16'])
                     ws.append(np.random.choice(tempo_classes))
                     ws.append(np.random.choice(tempo_values))
                 else:
-                    tempo_classes = [v for k, v in self.event2word.items() if 'Tempo Class' in k]
-                    tempo_values = [v for k, v in self.event2word.items() if 'Tempo Value' in k]
+                    tempo_classes = [
+                        v for k, v in self.event2word.items() if 'Tempo Class' in k]
+                    tempo_values = [
+                        v for k, v in self.event2word.items() if 'Tempo Value' in k]
                     ws.append(self.event2word['Position_1/16'])
                     ws.append(np.random.choice(tempo_classes))
                     ws.append(np.random.choice(tempo_values))
                 words.append(ws)
         # initialize mem
-        batch_m = [np.zeros((self.mem_len, self.batch_size, self.d_model), dtype=np.float32) for _ in range(self.n_layer)]
+        batch_m = [np.zeros((self.mem_len, self.batch_size, self.d_model),
+                            dtype=np.float32) for _ in range(self.n_layer)]
         # generate
         original_length = len(words[0])
         initial_flag = 1
@@ -186,11 +204,12 @@ class PopMusicTransformer(object):
             for m, m_np in zip(self.mems_i, batch_m):
                 feed_dict[m] = m_np
             # model (prediction)
-            _logits, _new_mem = self.sess.run([self.logits, self.new_mem], feed_dict=feed_dict)
+            _logits, _new_mem = self.sess.run(
+                [self.logits, self.new_mem], feed_dict=feed_dict)
             # sampling
             _logit = _logits[-1, 0]
             word = self.temperature_sampling(
-                logits=_logit, 
+                logits=_logit,
                 temperature=temperature,
                 topk=topk)
             words[0].append(word)
@@ -271,8 +290,10 @@ class PopMusicTransformer(object):
         for e in range(200):
             total_loss = []
             for i in range(num_batches):
-                segments = training_data[self.batch_size*i:self.batch_size*(i+1)]
-                batch_m = [np.zeros((self.mem_len, self.batch_size, self.d_model), dtype=np.float32) for _ in range(self.n_layer)]
+                segments = training_data[self.batch_size *
+                                         i:self.batch_size*(i+1)]
+                batch_m = [np.zeros((self.mem_len, self.batch_size, self.d_model),
+                                    dtype=np.float32) for _ in range(self.n_layer)]
                 for j in range(self.group_size):
                     batch_x = segments[:, j, 0, :]
                     batch_y = segments[:, j, 1, :]
@@ -281,11 +302,14 @@ class PopMusicTransformer(object):
                     for m, m_np in zip(self.mems_i, batch_m):
                         feed_dict[m] = m_np
                     # run
-                    _, gs_, loss_, new_mem_ = self.sess.run([self.train_op, self.global_step, self.avg_loss, self.new_mem], feed_dict=feed_dict)
+                    _, gs_, loss_, new_mem_ = self.sess.run(
+                        [self.train_op, self.global_step, self.avg_loss, self.new_mem], feed_dict=feed_dict)
                     batch_m = new_mem_
                     total_loss.append(loss_)
-                    print('>>> Epoch: {}, Step: {}, Loss: {:.5f}, Time: {:.2f}'.format(e, gs_, loss_, time.time()-st))
-            self.saver.save(self.sess, '{}/model-{:03d}-{:.3f}'.format(output_checkpoint_folder, e, np.mean(total_loss)))
+                    print('>>> Epoch: {}, Step: {}, Loss: {:.5f}, Time: {:.2f}'.format(
+                        e, gs_, loss_, time.time()-st))
+            self.saver.save(self.sess, '{}/model-{:03d}-{:.3f}'.format(
+                output_checkpoint_folder, e, np.mean(total_loss)))
             # stop
             if np.mean(total_loss) <= 0.1:
                 break

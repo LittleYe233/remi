@@ -1,10 +1,12 @@
 import miditoolkit
 import numpy as np
 
+
 class MIDIChord(object):
     def __init__(self):
         # define pitch classes
-        self.PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        self.PITCH_CLASSES = ['C', 'C#', 'D', 'D#',
+                              'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
         # define chord maps (required)
         self.CHORD_MAPS = {'maj': [0, 4],
                            'min': [0, 3],
@@ -32,9 +34,9 @@ class MIDIChord(object):
 
     def note2pianoroll(self, notes, max_tick, ticks_per_beat):
         return miditoolkit.pianoroll.parser.notes2pianoroll(
-                note_stream_ori=notes,
-                max_tick=max_tick,
-                ticks_per_beat=ticks_per_beat)
+            note_stream_ori=notes,
+            max_tick=max_tick,
+            ticks_per_beat=ticks_per_beat)
 
     def sequencing(self, chroma):
         candidates = {}
@@ -99,7 +101,7 @@ class MIDIChord(object):
             sorted_notes = []
             for i, v in enumerate(np.sum(pianoroll, axis=0)):
                 if v > 0:
-                    sorted_notes.append(int(i%12))
+                    sorted_notes.append(int(i % 12))
             bass_note = sorted_notes[0]
             # root note
             __root_note = []
@@ -110,7 +112,7 @@ class MIDIChord(object):
             if len(__root_note) == 1:
                 root_note = __root_note[0]
             else:
-                #TODO: what should i do
+                # TODO: what should i do
                 for n in sorted_notes:
                     if n in __root_note:
                         root_note = n
@@ -128,7 +130,8 @@ class MIDIChord(object):
         start_tick = 0
         while start_tick < max_tick:
             _candidates = candidates.get(start_tick)
-            _candidates = sorted(_candidates.items(), key=lambda x: (x[1][-1], x[0]))
+            _candidates = sorted(_candidates.items(),
+                                 key=lambda x: (x[1][-1], x[0]))
             # choose
             end_tick, (root_note, quality, bass_note, _) = _candidates[-1]
             if root_note == bass_note:
@@ -159,8 +162,8 @@ class MIDIChord(object):
         max_tick = max([n.end for n in notes])
         ticks_per_beat = 480
         pianoroll = self.note2pianoroll(
-            notes=notes, 
-            max_tick=max_tick, 
+            notes=notes,
+            max_tick=max_tick,
             ticks_per_beat=ticks_per_beat)
         # get lots of candidates
         candidates = {}
@@ -173,16 +176,19 @@ class MIDIChord(object):
                     end_tick = max_tick
                 _pianoroll = pianoroll[start_tick:end_tick, :]
                 # find chord
-                root_note, quality, bass_note, score = self.find_chord(pianoroll=_pianoroll)
+                root_note, quality, bass_note, score = self.find_chord(
+                    pianoroll=_pianoroll)
                 # save
                 if start_tick not in candidates:
                     candidates[start_tick] = {}
-                    candidates[start_tick][end_tick] = (root_note, quality, bass_note, score)
+                    candidates[start_tick][end_tick] = (
+                        root_note, quality, bass_note, score)
                 else:
                     if end_tick not in candidates[start_tick]:
-                        candidates[start_tick][end_tick] = (root_note, quality, bass_note, score)
+                        candidates[start_tick][end_tick] = (
+                            root_note, quality, bass_note, score)
         # greedy
-        chords = self.greedy(candidates=candidates, 
-                             max_tick=max_tick, 
+        chords = self.greedy(candidates=candidates,
+                             max_tick=max_tick,
                              min_length=ticks_per_beat)
         return chords
