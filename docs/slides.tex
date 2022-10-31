@@ -1,0 +1,171 @@
+% Quick start guide
+\documentclass{beamer}
+
+\usepackage{xeCJK}[CJKmath = true]
+\usepackage{blindtext}
+\usepackage{unicode-math}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{biblatex}
+\usepackage[inkscapeformat=png]{svg}
+
+\addbibresource{slides.bib}
+
+\setmainfont{Noto Serif CJK SC}
+\setsansfont[BoldFont = Fira Sans SemiBold]{Fira Sans Book}
+\setmonofont{Ligalex Mono}
+\setCJKmonofont{Maple Mono SC NF}
+\setmathfont{Latin Modern Math}
+\setCJKmainfont{KaiTi}
+\setCJKsansfont{KaiTi}
+\setCJKfallbackfamilyfont{\CJKrmdefault}{Noto Serif CJK SC Regular}
+
+\usetheme{Boadilla}
+
+\newcommand{\thiss}{}
+\newcommand{\thisss}{}
+
+\definecolor{VeryLightPink}{HTML}{FFF8EB}
+\definecolor{ReddishOrange}{HTML}{FC5A26}
+\sethlcolor{VeryLightPink}
+\newcommand{\code}[1]{\textcolor{ReddishOrange}{\hl{\texttt{#1}}}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=cyan,
+    filecolor=cyan,
+    urlcolor=cyan
+}
+
+% Title page details
+\title{Pop Music Transformer: Beat-based Modeling and Generation of Expressive Pop Piano Compositions}
+\subtitle{Some self-explanation and exploration}
+\author{LittleYe233}
+\institute{LittleYe233 Workgroup}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+    % Print the title page as the first slide
+    \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+% Current section
+\AtBeginSection[]
+{
+    \begin{frame}{Outline}
+        \tableofcontents[currentsection]
+    \end{frame}
+}
+
+\renewcommand{\thiss}{About the paper}
+\renewcommand{\thisss}{Basic information}
+\section{\thiss}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    \textbf{TITLE:} \href{https://arxiv.org/abs/2002.00212}{Pop Music Transformer: Beat-based Modeling and Generation of Expressive Pop Piano Compositions}
+
+    \textbf{AUTHORS:}
+    \begin{itemize}
+        \item Yu-Siang Huang <\href{mailto:yshuang@ailabs.tw}{yshuang@ailabs.tw}> from Taiwan AI Labs \& Academia Sinica, Taipei, Taiwan
+        \item Yi-Hsuan Yang <\href{mailto:yhyang@ailabs.tw}{yhyang@ailabs.tw}> from Taiwan AI Labs \& Academia Sinica, Taipei, Taiwan
+    \end{itemize}
+    
+    \textbf{KEYWORDS:} Automatic music composition, transformer, neural sequence model
+
+    \textbf{OPEN-SOURCED CODE:} \href{https://arxiv.org/abs/2002.00212}{GitHub:YatingMusic/remi}
+\end{frame}
+
+\renewcommand{\thisss}{Research background}
+\section{\thiss}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    
+\end{frame}
+
+\renewcommand{\thiss}{Basic music concepts}
+\section{\thiss}
+\begin{frame}[allowframebreaks]{\thiss}
+    \begin{itemize}
+        \item \textbf{chord} - any harmonic set of pitches/frequencies consisting of multiple notes (also called "pitches") that are heard as if sounding simultaneously \cite{chordwiki}
+            \begin{itemize}
+                \item \textbf{bass note} - the root/lowest note in many cases \cite{bassnotewiki}
+                \item \textbf{slash chord} - a chord whose bass note or inversion is indicated by the addition of a slash and the letter of the bass note after the root note letter \cite{slashchordwiki}
+                \item \textbf{quality}: is similar to the "type" of a chord (i.e. major ("maj"), minor ("min"), augmented ("aug"), diminished ("dim"))
+            \end{itemize}
+
+        \framebreak
+
+        \item \textbf{chroma feature} - a powerful tool for analyzing music whose pitches can be meaningfully categorized \cite{chromawiki}
+    \end{itemize}
+
+    \begin{center}
+        \begin{figure}
+            \includegraphics[width=.6\textwidth]{../assets/ChromaFeatureCmajorScaleScoreAudioColor.png}
+            \caption{An example of chroma feature figure \cite{chromawiki}}
+        \end{figure}
+    \end{center}
+
+    \framebreak
+\end{frame}
+
+\renewcommand{\thiss}{Analysis of source code}
+\renewcommand{\thisss}{\texttt{utils.py} - utilities to convert MIDI/words to REMI}
+\section{\thiss}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    \textbf{Data types:}
+    \begin{itemize}
+        \item \code{Item} - a direct representation of note and tempo events, etc.
+        \item \code{Event} - a representation of REMI events
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{\thiss}{\thisss}
+    \textbf{Functions:}
+    \begin{itemize}
+        \item \code{read\_items(file\_path) -> (note\_items, tempo\_items)} - read Items from MIDI
+        \item \code{quantize\_items(items, ticks=120) -> items} - align positions of Items with tick \textbf{(possible changing real time gaps between original items)}
+        \item \code{extract\_chords(items) -> output} - extract chord Items from note Items
+        \item \code{group\_items(items, max\_time, ticks\_per\_bar=DEFAULT\_RESOLUTION*4) -> groups} - group given Items by bar (a default bar consists of 16 quantized bins mentioned above and in the paper)
+        \item \code{item2event(groups) -> events} - convert groups to REMI Events
+    \end{itemize}
+\end{frame}
+
+\renewcommand{\thisss}{\texttt{chord\_recognition.py} - recognize and extract chords from notes}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    \begin{center}
+        \begin{figure}
+            \includesvg[height=6cm]{../assets/chord_recognition_flowchart_extract.svg}
+            \hspace{2cm}
+            \includesvg[height=6cm]{../assets/chord_recognition_flowchart_find_chord.svg}
+            \caption{Flowcharts of methods \code{extract()}'s and \code{find\_chord()}'s behavior}
+        \end{figure}
+    \end{center}
+\end{frame}
+
+\renewcommand{\thisss}{\texttt{modules.py} - necessary modules for TensorFlow}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    
+\end{frame}
+
+\renewcommand{\thisss}{\texttt{model.py} - the Pop Music Transformer model}
+\subsection{\thisss}
+\begin{frame}{\thiss}{\thisss}
+    
+\end{frame}
+
+\renewcommand{\thiss}{References}
+\section{\thiss}
+\begin{frame}[allowframebreaks]{\thiss}
+    \printbibliography    
+\end{frame}
+
+\end{document}
